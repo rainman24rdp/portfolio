@@ -26,3 +26,8 @@ dist-ssr
 # Uploads
 uploads/
 photos-metadata.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local

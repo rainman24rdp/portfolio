@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import './Photography.css';
 
 function Photography() {
@@ -12,12 +13,13 @@ function Photography() {
 
   const fetchPhotos = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/photos');
-      if (!response.ok) {
-        throw new Error('Failed to fetch photos');
-      }
-      const data = await response.json();
-      setPhotos(data);
+      const { data, error } = await supabase
+        .from('photos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPhotos(data || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -63,7 +65,7 @@ function Photography() {
             {photos.map((photo) => (
               <div key={photo.id} className="photo-item">
                 <img 
-                  src={`http://localhost:3001${photo.url}`}
+                  src={photo.url}
                   alt={photo.title}
                   className="photo-image"
                 />

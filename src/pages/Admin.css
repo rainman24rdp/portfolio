@@ -15,6 +15,29 @@
   margin-bottom: 1rem;
 }
 
+.logout-btn {
+  background: transparent;
+  color: #888;
+  padding: 0.5rem 1rem;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+  border-color: #ff4757;
+  color: #ff4757;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .admin h1 {
   font-size: 3rem;
   margin-bottom: 0;

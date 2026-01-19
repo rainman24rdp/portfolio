@@ -11,7 +11,6 @@ function Layout({ children }) {
         <Link to="/" className="logo">parm</Link>
         <div className="nav-links">
           <Link to="/about" className={isActive('/about') ? 'active' : ''}>about</Link>
-          <Link to="/projects" className={isActive('/projects') ? 'active' : ''}>projects</Link>
           <Link to="/photography" className={isActive('/photography') ? 'active' : ''}>photos</Link>
         </div>
       </nav>

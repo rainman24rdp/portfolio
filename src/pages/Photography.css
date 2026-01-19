@@ -8,12 +8,10 @@
 }
 
 .photography h1 {
-  font-size: 3rem;
+  font-size: 2rem;
+  font-weight: 600;
   margin-bottom: 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.02em;
 }
 
 .photography-intro {
@@ -76,6 +74,6 @@
   }
   
   .photography h1 {
-    font-size: 2.5rem;
+    font-size: 1.75rem;
   }
 }

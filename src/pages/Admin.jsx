@@ -1,82 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import './Admin.css';
 
 function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-
+  const { signOut } = useAuth();
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Nature');
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
-
-  // Check for existing session on mount
-  useEffect(() => {
-    const token = sessionStorage.getItem('adminToken');
-    if (token) {
-      verifyToken(token);
-    } else {
-      setAuthLoading(false);
-    }
-  }, []);
-
-  const verifyToken = async (token) => {
-    try {
-      const response = await fetch('http://localhost:3001/api/admin/verify', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        setIsAuthenticated(true);
-      } else {
-        sessionStorage.removeItem('adminToken');
-      }
-    } catch {
-      sessionStorage.removeItem('adminToken');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginError('');
-
-    try {
-      const response = await fetch('http://localhost:3001/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        sessionStorage.setItem('adminToken', data.token);
-        setIsAuthenticated(true);
-        setPassword('');
-      } else {
-        setLoginError(data.error || 'Login failed');
-      }
-    } catch {
-      setLoginError('Connection error');
-    }
-  };
-
-  const handleLogout = () => {
-    const token = sessionStorage.getItem('adminToken');
-    if (token) {
-      fetch('http://localhost:3001/api/admin/logout', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-    }
-    sessionStorage.removeItem('adminToken');
-    setIsAuthenticated(false);
-  };
 
   const categories = ['Nature', 'People', 'Urban', 'Travel', 'Architecture', 'Other'];
 
@@ -125,77 +59,61 @@ function Admin() {
     setUploading(true);
     setMessage('');
 
-    const formData = new FormData();
-    formData.append('photo', selectedFile);
-    formData.append('title', title);
-    formData.append('category', category);
-
     try {
-      const token = sessionStorage.getItem('adminToken');
-      const response = await fetch('http://localhost:3001/api/upload', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
+      // Upload file to Supabase Storage
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `photos/${fileName}`;
 
-      const data = await response.json();
+      const { error: uploadError } = await supabase.storage
+        .from('portfolio-photos')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (response.ok) {
-        setMessage('Photo uploaded successfully!');
-        setSelectedFile(null);
-        setPreview(null);
-        setTitle('');
-        setCategory('Nature');
-      } else {
-        setMessage(`Error: ${data.error}`);
-      }
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('portfolio-photos')
+        .getPublicUrl(filePath);
+
+      // Save metadata to database
+      const { error: dbError } = await supabase
+        .from('photos')
+        .insert([
+          {
+            title: title,
+            category: category,
+            file_path: filePath,
+            url: publicUrl,
+            original_name: selectedFile.name
+          }
+        ]);
+
+      if (dbError) throw dbError;
+
+      setMessage('Photo uploaded successfully!');
+      setSelectedFile(null);
+      setPreview(null);
+      setTitle('');
+      setCategory('Nature');
     } catch (error) {
+      console.error('Upload error:', error);
       setMessage(`Error: ${error.message}`);
     } finally {
       setUploading(false);
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="admin">
-        <div className="admin-container">
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="admin">
-        <div className="admin-container">
-          <h1>Admin Login</h1>
-          <p className="admin-intro">Enter password to access the admin panel</p>
-
-          <form onSubmit={handleLogin} className="login-form">
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
-                autoFocus
-                required
-              />
-            </div>
-            <button type="submit" className="upload-btn">Login</button>
-          </form>
-
-          {loginError && (
-            <div className="message error">{loginError}</div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <div className="admin">

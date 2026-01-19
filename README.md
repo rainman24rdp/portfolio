@@ -73,12 +73,34 @@ Visit `http://localhost:5173/photography` to see all uploaded photos in a beauti
 - Multer (file uploads)
 - CORS
 
+## Deployment
+
+This portfolio is ready to deploy to production with Vercel and Supabase!
+
+**See [DEPLOYMENT.md](./DEPLOYMENT.md) for complete step-by-step instructions.**
+
+Quick overview:
+1. Create a free Supabase project
+2. Set up database table and storage bucket
+3. Create an admin user for authentication
+4. Deploy to Vercel with environment variables
+5. Upload photos from anywhere after logging in!
+
 ## Customization
 
 - Edit `src/pages/About.jsx` to add your personal information
 - Update `src/pages/Projects.jsx` to showcase your projects
 - Modify colors and styles in the CSS files to match your brand
 - Replace placeholder content with your own
+
+## Production Features
+
+✅ **Authentication** - Secure admin login via Supabase Auth
+✅ **Cloud Storage** - Photos stored in Supabase Storage with CDN
+✅ **Database** - Photo metadata in PostgreSQL
+✅ **Auto-deploy** - Push to GitHub → Auto deploys to Vercel
+✅ **Mobile Upload** - Upload photos from any device after login
+✅ **100% Free** - Vercel + Supabase free tiers are generous
 
 ## React Compiler
 
