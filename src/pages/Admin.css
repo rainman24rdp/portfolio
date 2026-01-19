@@ -1,0 +1,245 @@
+.admin {
+  padding: 4rem 2rem;
+  min-height: 80vh;
+}
+
+.admin-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.admin h1 {
+  font-size: 3rem;
+  margin-bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logout-btn {
+  background: transparent;
+  color: #888;
+  padding: 0.5rem 1rem;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+  border-color: #ff4757;
+  color: #ff4757;
+}
+
+.login-form {
+  background: #1a1a1a;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid #333;
+  max-width: 400px;
+}
+
+.admin-intro {
+  font-size: 1.1rem;
+  color: #aaa;
+  margin-bottom: 3rem;
+}
+
+.upload-form {
+  background: #1a1a1a;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+
+.drop-zone {
+  border: 2px dashed #667eea;
+  border-radius: 8px;
+  padding: 3rem;
+  text-align: center;
+  background: rgba(102, 126, 234, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drop-zone:hover {
+  background: rgba(102, 126, 234, 0.1);
+  border-color: #764ba2;
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-icon {
+  width: 64px;
+  height: 64px;
+  color: #667eea;
+}
+
+.drop-zone p {
+  color: #ccc;
+  margin: 0;
+}
+
+.drop-zone-or {
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.file-input-label:hover {
+  transform: translateY(-2px);
+}
+
+.preview-container {
+  width: 100%;
+  max-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.form-fields {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: #ccc;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #0a0a0a;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.upload-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  font-size: 1rem;
+}
+
+.upload-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: #888;
+  padding: 0.75rem 2rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.message.success {
+  background: rgba(46, 213, 115, 0.2);
+  color: #2ed573;
+  border: 1px solid #2ed573;
+}
+
+.message.error {
+  background: rgba(255, 71, 87, 0.2);
+  color: #ff4757;
+  border: 1px solid #ff4757;
+}
+
+@media (max-width: 768px) {
+  .admin h1 {
+    font-size: 2.5rem;
+  }
+  
+  .drop-zone {
+    padding: 2rem;
+    min-height: 250px;
+  }
+  
+  .upload-icon {
+    width: 48px;
+    height: 48px;
+  }
+}
