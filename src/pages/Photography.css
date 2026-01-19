@@ -1,0 +1,81 @@
+.photography {
+  padding: 4rem 2rem;
+}
+
+.photography-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.photography h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.photography-intro {
+  font-size: 1.1rem;
+  color: #aaa;
+  margin-bottom: 3rem;
+}
+
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.photo-item {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+  transform: scale(1.05);
+}
+
+.photo-image {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.photo-title {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.photo-category {
+  color: #888;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.no-photos {
+  color: #aaa;
+  text-align: center;
+  font-size: 1.1rem;
+  margin-top: 2rem;
+}
+
+.error-message {
+  color: #ff4757;
+}
+
+@media (max-width: 768px) {
+  .photo-gallery {
+    grid-template-columns: 1fr;
+  }
+  
+  .photography h1 {
+    font-size: 2.5rem;
+  }
+}
