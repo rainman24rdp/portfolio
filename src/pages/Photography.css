@@ -35,12 +35,54 @@
   transform: scale(1.05);
 }
 
-.photo-image {
+.lazy-image-container {
+  position: relative;
   width: 100%;
   aspect-ratio: 4/3;
-  object-fit: cover;
   border-radius: 8px;
+  overflow: hidden;
   margin-bottom: 0.5rem;
+  background: #1a1a1a;
+}
+
+.photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+.photo-image.loading {
+  opacity: 0;
+}
+
+.photo-image.loaded {
+  opacity: 1;
+}
+
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    #1a1a1a 0%,
+    #2a2a2a 50%,
+    #1a1a1a 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .photo-title {

@@ -2,6 +2,23 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import './Photography.css';
 
+function LazyImage({ src, alt, className }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div className="lazy-image-container">
+      <img
+        src={src}
+        alt={alt}
+        className={`${className} ${isLoaded ? 'loaded' : 'loading'}`}
+        loading="lazy"
+        onLoad={() => setIsLoaded(true)}
+      />
+      {!isLoaded && <div className="image-placeholder" />}
+    </div>
+  );
+}
+
 function Photography() {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +81,7 @@ function Photography() {
           <div className="photo-gallery">
             {photos.map((photo) => (
               <div key={photo.id} className="photo-item">
-                <img 
+                <LazyImage
                   src={photo.url}
                   alt={photo.title}
                   className="photo-image"
