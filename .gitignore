@@ -31,3 +31,8 @@ photos-metadata.json
 .env
 .env.local
 .env.*.local
+
+# AI context files
+CLAUDE.md
+WARP.md
+.claude/
