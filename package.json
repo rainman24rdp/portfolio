@@ -1,8 +1,11 @@
 {
-  "name": "portfolio",
+  "name": "parimal-io",
+  "description": "Personal portfolio and photography showcase",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "author": "Parimal",
+  "homepage": "https://parimal.io",
   "scripts": {
     "dev": "vite",
     "server": "node server.js",
