@@ -86,8 +86,10 @@ function Photography() {
                   alt={photo.title}
                   className="photo-image"
                 />
-                <p className="photo-title">{photo.title}</p>
-                <p className="photo-category">{photo.category}</p>
+                <div className="photo-info">
+                  <p className="photo-title">{photo.title}</p>
+                  <p className="photo-category">{photo.category}</p>
+                </div>
               </div>
             ))}
           </div>
