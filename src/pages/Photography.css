@@ -158,12 +158,21 @@
   }
 
   .photo-gallery {
-    column-count: 2;
-    column-gap: 0.75rem;
+    column-count: unset;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
 
   .photo-item {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
+    break-inside: unset;
+  }
+
+  .photo-image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
   }
 
   .photography h1 {
