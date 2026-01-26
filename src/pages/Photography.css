@@ -33,17 +33,16 @@
   page-break-inside: avoid;
   margin-bottom: 1rem;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-secondary);
   display: block;
   width: 100%;
+  transition: box-shadow 0.3s ease;
 }
 
 .photo-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .lazy-image-container {
@@ -60,6 +59,9 @@
   height: auto !important;
   max-width: 100%;
   object-fit: contain;
+  /* Safari flicker fix */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .photo-image.loading {
