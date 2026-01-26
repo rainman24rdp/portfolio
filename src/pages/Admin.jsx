@@ -12,6 +12,14 @@ function Admin() {
   const [preview, setPreview] = useState(null);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Nature');
+  const [metadata, setMetadata] = useState({
+    camera: '',
+    lens: '',
+    aperture: '',
+    shutter_speed: '',
+    iso: '',
+    focal_length: ''
+  });
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedPhotos, setSelectedPhotos] = useState([]);
@@ -86,7 +94,19 @@ function Admin() {
 
       const { error: dbError } = await supabase
         .from('photos')
-        .insert([{ title, category, file_path: filePath, url: publicUrl, original_name: selectedFile.name }]);
+        .insert([{
+          title,
+          category,
+          file_path: filePath,
+          url: publicUrl,
+          original_name: selectedFile.name,
+          camera: metadata.camera || null,
+          lens: metadata.lens || null,
+          aperture: metadata.aperture || null,
+          shutter_speed: metadata.shutter_speed || null,
+          iso: metadata.iso || null,
+          focal_length: metadata.focal_length || null
+        }]);
       if (dbError) throw dbError;
 
       setMessage({ type: 'success', text: 'Photo uploaded successfully!' });
@@ -94,6 +114,7 @@ function Admin() {
       setPreview(null);
       setTitle('');
       setCategory('Nature');
+      setMetadata({ camera: '', lens: '', aperture: '', shutter_speed: '', iso: '', focal_length: '' });
       fetchPhotos();
     } catch (error) {
       setMessage({ type: 'error', text: `Error: ${error.message}` });
@@ -276,6 +297,37 @@ function Admin() {
                       <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
                         {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                       </select>
+                    </div>
+                  </div>
+                  <div className="metadata-section">
+                    <p className="metadata-label">Camera Settings <span className="optional">(optional)</span></p>
+                    <div className="form-row three-col">
+                      <div className="form-group">
+                        <label htmlFor="camera">Camera</label>
+                        <input type="text" id="camera" value={metadata.camera} onChange={(e) => setMetadata(m => ({ ...m, camera: e.target.value }))} placeholder="e.g. Sony A7III" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="lens">Lens</label>
+                        <input type="text" id="lens" value={metadata.lens} onChange={(e) => setMetadata(m => ({ ...m, lens: e.target.value }))} placeholder="e.g. 24-70mm f/2.8" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="focal_length">Focal Length</label>
+                        <input type="text" id="focal_length" value={metadata.focal_length} onChange={(e) => setMetadata(m => ({ ...m, focal_length: e.target.value }))} placeholder="e.g. 50mm" />
+                      </div>
+                    </div>
+                    <div className="form-row three-col">
+                      <div className="form-group">
+                        <label htmlFor="aperture">Aperture</label>
+                        <input type="text" id="aperture" value={metadata.aperture} onChange={(e) => setMetadata(m => ({ ...m, aperture: e.target.value }))} placeholder="e.g. f/2.8" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="shutter_speed">Shutter Speed</label>
+                        <input type="text" id="shutter_speed" value={metadata.shutter_speed} onChange={(e) => setMetadata(m => ({ ...m, shutter_speed: e.target.value }))} placeholder="e.g. 1/250s" />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="iso">ISO</label>
+                        <input type="text" id="iso" value={metadata.iso} onChange={(e) => setMetadata(m => ({ ...m, iso: e.target.value }))} placeholder="e.g. 400" />
+                      </div>
                     </div>
                   </div>
                   <div className="form-actions">

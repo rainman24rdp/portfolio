@@ -80,6 +80,10 @@
 
 .form-fields { margin-top: 2rem; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.form-row.three-col { grid-template-columns: 1fr 1fr 1fr; }
+.metadata-section { margin-bottom: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #222; }
+.metadata-label { color: #aaa; font-weight: 500; font-size: 0.9rem; margin: 0 0 1rem 0; }
+.metadata-label .optional { color: #555; font-weight: 400; }
 .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
 .form-group label { color: #aaa; font-weight: 500; font-size: 0.9rem; }
 .form-group input, .form-group select { padding: 0.875rem 1rem; border-radius: 8px; border: 2px solid #222; background: #0a0a0a; color: #fff; font-size: 1rem; transition: border-color 0.3s ease; }
@@ -137,5 +141,10 @@
   .stats-grid { grid-template-columns: 1fr; }
   .recent-grid { grid-template-columns: repeat(3, 1fr); }
   .form-row { grid-template-columns: 1fr; }
+  .form-row.three-col { grid-template-columns: 1fr 1fr; }
   .photos-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .form-row.three-col { grid-template-columns: 1fr; }
 }

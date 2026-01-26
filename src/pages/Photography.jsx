@@ -105,19 +105,37 @@ function Photography() {
           <p className="no-photos">No photos uploaded yet. Visit /admin to upload photos!</p>
         ) : (
           <div className="photo-gallery">
-            {photos.map((photo) => (
-              <div key={photo.id} className="photo-item">
-                <LazyImage
-                  src={photo.url}
-                  alt={photo.title}
-                  className="photo-image"
-                />
-                <div className="photo-info">
-                  <p className="photo-title">{photo.title}</p>
-                  <p className="photo-category">{photo.category}</p>
+            {photos.map((photo) => {
+              const hasMetadata = photo.camera || photo.lens || photo.aperture || photo.shutter_speed || photo.iso || photo.focal_length;
+              return (
+                <div key={photo.id} className="photo-item">
+                  <LazyImage
+                    src={photo.url}
+                    alt={photo.title}
+                    className="photo-image"
+                  />
+                  <div className="photo-info">
+                    <p className="photo-title">{photo.title}</p>
+                    <p className="photo-category">{photo.category}</p>
+                    {hasMetadata && (
+                      <div className="photo-metadata">
+                        {(photo.camera || photo.lens) && (
+                          <p className="metadata-gear">
+                            {photo.camera}{photo.camera && photo.lens && ' · '}{photo.lens}
+                          </p>
+                        )}
+                        <div className="metadata-settings">
+                          {photo.focal_length && <span>{photo.focal_length}</span>}
+                          {photo.aperture && <span>{photo.aperture}</span>}
+                          {photo.shutter_speed && <span>{photo.shutter_speed}</span>}
+                          {photo.iso && <span>ISO {photo.iso}</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
