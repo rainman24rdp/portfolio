@@ -33,21 +33,19 @@
   page-break-inside: avoid;
   margin-bottom: 1rem;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-secondary);
   display: block;
   width: 100%;
-  /* Safari columns + transform fix */
-  transform: translate3d(0, 0, 0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  isolation: isolate;
+  /* Use position instead of transform for Safari columns compatibility */
+  position: relative;
+  top: 0;
+  transition: top 0.3s ease, box-shadow 0.3s ease;
 }
 
 .photo-item:hover {
-  transform: translate3d(0, -4px, 0);
+  top: -4px;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
