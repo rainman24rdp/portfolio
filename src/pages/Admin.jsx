@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import './Admin.css';
 
+const STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET || 'portfolio-photos';
+
 function Admin() {
   const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -97,12 +99,12 @@ function Admin() {
       const filePath = `photos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('portfolio-photos')
+        .from(STORAGE_BUCKET)
         .upload(filePath, selectedFile, { cacheControl: '3600', upsert: false });
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('portfolio-photos')
+        .from(STORAGE_BUCKET)
         .getPublicUrl(filePath);
 
       const { error: dbError } = await supabase
@@ -133,7 +135,7 @@ function Admin() {
 
   const handleDelete = async (photo) => {
     try {
-      await supabase.storage.from('portfolio-photos').remove([photo.file_path]);
+      await supabase.storage.from(STORAGE_BUCKET).remove([photo.file_path]);
       const { error } = await supabase.from('photos').delete().eq('id', photo.id);
       if (error) throw error;
       setMessage({ type: 'success', text: 'Photo deleted successfully!' });
@@ -150,7 +152,7 @@ function Admin() {
       for (const photoId of selectedPhotos) {
         const photo = photos.find(p => p.id === photoId);
         if (photo) {
-          await supabase.storage.from('portfolio-photos').remove([photo.file_path]);
+          await supabase.storage.from(STORAGE_BUCKET).remove([photo.file_path]);
           await supabase.from('photos').delete().eq('id', photo.id);
         }
       }
