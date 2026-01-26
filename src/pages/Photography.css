@@ -39,6 +39,10 @@
   background: var(--bg-secondary);
   display: block;
   width: 100%;
+  /* Safari flicker fix */
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
 }
 
 .photo-item:hover {
@@ -60,6 +64,9 @@
   height: auto !important;
   max-width: 100%;
   object-fit: contain;
+  /* Safari flicker fix */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .photo-image.loading {
