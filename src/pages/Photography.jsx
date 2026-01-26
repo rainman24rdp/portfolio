@@ -23,17 +23,10 @@ function getOptimizedUrl(originalUrl, width) {
 function LazyImage({ src, alt, className }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Generate optimized URLs for different screen sizes
-  const smallUrl = getOptimizedUrl(src, 400);
-  const mediumUrl = getOptimizedUrl(src, 600);
-  const largeUrl = getOptimizedUrl(src, 800);
-
   return (
     <div className="lazy-image-container">
       <img
-        src={mediumUrl || src}
-        srcSet={`${smallUrl} 400w, ${mediumUrl} 600w, ${largeUrl} 800w`}
-        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
+        src={src}
         alt={alt}
         className={`${className} ${isLoaded ? 'loaded' : 'loading'}`}
         loading="lazy"

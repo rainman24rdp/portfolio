@@ -13,7 +13,9 @@ function Admin() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState('Nature');
+  const [category, setCategory] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
+  const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [labels, setLabels] = useState([]);
   const [labelInput, setLabelInput] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -21,7 +23,11 @@ function Admin() {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  const categories = ['Nature', 'People', 'Urban', 'Travel', 'Architecture', 'Other'];
+  const defaultCategories = ['Nature', 'People', 'Urban', 'Travel', 'Architecture', 'Other'];
+
+  // Build categories from existing photos + defaults
+  const existingCategories = [...new Set(photos.map(p => p.category).filter(Boolean))];
+  const allCategories = [...new Set([...defaultCategories, ...existingCategories])].sort();
 
   useEffect(() => {
     fetchPhotos();
@@ -123,7 +129,9 @@ function Admin() {
       setSelectedFile(null);
       setPreview(null);
       setTitle('');
-      setCategory('Nature');
+      setCategory('');
+      setCustomCategory('');
+      setShowCategoryInput(false);
       setLabels([]);
       fetchPhotos();
     } catch (error) {
@@ -176,7 +184,7 @@ function Admin() {
 
   const stats = {
     total: photos.length,
-    categories: categories.map(cat => ({
+    categories: allCategories.map(cat => ({
       name: cat,
       count: photos.filter(p => p.category === cat).length
     })).filter(c => c.count > 0),
@@ -304,9 +312,38 @@ function Admin() {
                     </div>
                     <div className="form-group">
                       <label htmlFor="category">Category</label>
-                      <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
-                        {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-                      </select>
+                      {showCategoryInput ? (
+                        <div className="category-input-container">
+                          <input
+                            type="text"
+                            id="customCategory"
+                            value={customCategory}
+                            onChange={(e) => {
+                              setCustomCategory(e.target.value);
+                              setCategory(e.target.value);
+                            }}
+                            placeholder="Enter custom category"
+                            autoFocus
+                          />
+                          <button type="button" className="category-toggle-btn" onClick={() => {
+                            setShowCategoryInput(false);
+                            setCategory(allCategories[0] || '');
+                            setCustomCategory('');
+                          }}>
+                            Select
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="category-input-container">
+                          <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
+                            <option value="">Select category</option>
+                            {allCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                          </select>
+                          <button type="button" className="category-toggle-btn" onClick={() => setShowCategoryInput(true)}>
+                            + New
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="form-group">
