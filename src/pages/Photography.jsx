@@ -2,16 +2,42 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import './Photography.css';
 
+function getOptimizedUrl(originalUrl, width) {
+  if (!originalUrl) return '';
+
+  // Check if it's a Supabase storage URL
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (supabaseUrl && originalUrl.includes(supabaseUrl)) {
+    // Extract the path after /storage/v1/object/public/
+    const match = originalUrl.match(/\/storage\/v1\/object\/public\/(.+)/);
+    if (match) {
+      const path = match[1];
+      // Use Supabase image transformation
+      return `${supabaseUrl}/storage/v1/render/image/public/${path}?width=${width}&quality=80`;
+    }
+  }
+
+  return originalUrl;
+}
+
 function LazyImage({ src, alt, className }) {
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Generate optimized URLs for different screen sizes
+  const smallUrl = getOptimizedUrl(src, 400);
+  const mediumUrl = getOptimizedUrl(src, 600);
+  const largeUrl = getOptimizedUrl(src, 800);
 
   return (
     <div className="lazy-image-container">
       <img
-        src={src}
+        src={mediumUrl || src}
+        srcSet={`${smallUrl} 400w, ${mediumUrl} 600w, ${largeUrl} 800w`}
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw"
         alt={alt}
         className={`${className} ${isLoaded ? 'loaded' : 'loading'}`}
         loading="lazy"
+        decoding="async"
         onLoad={() => setIsLoaded(true)}
       />
       {!isLoaded && <div className="image-placeholder" />}
