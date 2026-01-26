@@ -60,11 +60,11 @@
   height: auto !important;
   max-width: 100%;
   object-fit: contain;
-  transition: opacity 0.3s ease;
 }
 
 .photo-image.loading {
   opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .photo-image.loaded {
