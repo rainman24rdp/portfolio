@@ -39,14 +39,15 @@
   background: var(--bg-secondary);
   display: block;
   width: 100%;
-  /* Safari flicker fix */
-  -webkit-transform: translateZ(0);
+  /* Safari columns + transform fix */
+  transform: translate3d(0, 0, 0);
   -webkit-backface-visibility: hidden;
-  will-change: transform;
+  backface-visibility: hidden;
+  isolation: isolate;
 }
 
 .photo-item:hover {
-  transform: translateY(-4px);
+  transform: translate3d(0, -4px, 0);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
