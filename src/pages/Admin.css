@@ -88,6 +88,11 @@
 .form-group input::placeholder { color: var(--text-muted); }
 .form-actions { display: flex; gap: 1rem; }
 
+.category-input-container { display: flex; gap: 0.5rem; }
+.category-input-container select, .category-input-container input { flex: 1; }
+.category-toggle-btn { padding: 0.875rem 1rem; background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; }
+.category-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+
 .labels-input-container { display: flex; gap: 0.5rem; }
 .labels-input-container input { flex: 1; }
 .add-label-btn { padding: 0.875rem 1.25rem; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; }
