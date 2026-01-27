@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { usePhotos } from '../contexts/PhotosContext';
 import { supabase } from '../lib/supabase';
 import exifr from 'exifr';
 import './Admin.css';
@@ -81,13 +82,11 @@ async function extractMetadata(file) {
 
 function Admin() {
   const { signOut } = useAuth();
+  const { photos, loading, refresh: refreshPhotos } = usePhotos();
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // Multi-file upload state
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [uploadQueue, setUploadQueue] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
 
@@ -107,23 +106,8 @@ function Admin() {
   const allCategories = [...new Set([...defaultCategories, ...existingCategories])].sort();
 
   useEffect(() => {
-    fetchPhotos();
-  }, []);
-
-  const fetchPhotos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('photos')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setPhotos(data || []);
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    refreshPhotos();
+  }, [refreshPhotos]);
 
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files);
@@ -275,7 +259,7 @@ function Admin() {
       setMessage({ type: 'error', text: 'All uploads failed. Please try again.' });
     }
 
-    fetchPhotos();
+    refreshPhotos();
   };
 
   const handleDelete = async (photo) => {
@@ -285,7 +269,7 @@ function Admin() {
       if (error) throw error;
       setMessage({ type: 'success', text: 'Photo deleted successfully!' });
       setDeleteConfirm(null);
-      fetchPhotos();
+      refreshPhotos();
     } catch (error) {
       setMessage({ type: 'error', text: `Error: ${error.message}` });
     }
@@ -303,7 +287,7 @@ function Admin() {
       }
       setMessage({ type: 'success', text: `${selectedPhotos.length} photos deleted!` });
       setSelectedPhotos([]);
-      fetchPhotos();
+      refreshPhotos();
     } catch (error) {
       setMessage({ type: 'error', text: `Error: ${error.message}` });
     }

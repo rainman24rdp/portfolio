@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { usePhotos } from '../contexts/PhotosContext';
 import './Photography.css';
 
 function LazyImage({ src, alt, className }) {
@@ -154,31 +154,13 @@ function PhotoModal({ photo, onClose }) {
 }
 
 function Photography() {
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { photos, loading, error, fetchPhotos } = usePhotos();
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
-
-  const fetchPhotos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('photos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPhotos(data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchPhotos]);
 
   const categories = ['All', ...new Set(photos.map(p => p.category).filter(Boolean))];
   const filteredPhotos = activeFilter === 'All'
