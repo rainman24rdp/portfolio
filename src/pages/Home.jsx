@@ -1,64 +1,5 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
-
-// Spotify Now Playing Component
-function NowPlaying() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchNowPlaying = async () => {
-      try {
-        const response = await fetch('/api/now-playing');
-        if (response.ok) {
-          const json = await response.json();
-          setData(json);
-        }
-      } catch (error) {
-        console.error('Error fetching now playing:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNowPlaying();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchNowPlaying, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (loading || !data || !data.isPlaying) {
-    return null;
-  }
-
-  return (
-    <a
-      href={data.songUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="now-playing"
-    >
-      <div className="now-playing-icon">
-        <span className="bar"></span>
-        <span className="bar"></span>
-        <span className="bar"></span>
-      </div>
-      <div className="now-playing-info">
-        <span className="now-playing-label">Now playing</span>
-        <span className="now-playing-song">{data.title}</span>
-        <span className="now-playing-artist">{data.artist}</span>
-      </div>
-      {data.albumImageUrl && (
-        <img
-          src={data.albumImageUrl}
-          alt={data.album}
-          className="now-playing-album"
-        />
-      )}
-    </a>
-  );
-}
 
 function Home() {
   return (
@@ -90,8 +31,6 @@ function Home() {
           <span className="divider">·</span>
           <Link to="/photography">see my work</Link>
         </div>
-
-        <NowPlaying />
       </div>
     </div>
   );
