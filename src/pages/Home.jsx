@@ -4,6 +4,19 @@ import './Home.css';
 function Home() {
   return (
     <div className="home">
+      {/* Noise texture overlay */}
+      <div className="noise-overlay"></div>
+
+      {/* Animated accent line */}
+      <svg className="accent-line" viewBox="0 0 200 200" preserveAspectRatio="none">
+        <path
+          d="M 0,100 Q 50,50 100,100 T 200,100"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+      </svg>
+
       <div className="hero">
         <p className="hero-greeting">hey, i'm</p>
         <h1 className="hero-name">parm</h1>
