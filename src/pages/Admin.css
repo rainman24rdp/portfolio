@@ -134,8 +134,11 @@
 .photo-category-tag { display: inline-block; background: var(--accent-dim); color: var(--accent); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
 .photo-labels { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
 .photo-label { font-size: 0.7rem; color: var(--text-muted); background: var(--bg-primary); border: 1px solid var(--border); padding: 0.15rem 0.5rem; border-radius: 12px; }
-.photo-card-actions { position: absolute; top: 0.75rem; right: 0.75rem; opacity: 0; transition: opacity 0.2s ease; }
+.photo-card-actions { position: absolute; top: 0.75rem; right: 0.75rem; opacity: 0; transition: opacity 0.2s ease; display: flex; gap: 0.5rem; }
 .photo-card:hover .photo-card-actions { opacity: 1; }
+.btn-edit { width: 36px; height: 36px; background: rgba(0, 0, 0, 0.6); border: none; border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+.btn-edit svg { width: 16px; height: 16px; }
+.btn-edit:hover { background: var(--accent); transform: scale(1.1); }
 .btn-delete { width: 36px; height: 36px; background: rgba(220, 38, 38, 0.9); border: none; border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .btn-delete svg { width: 18px; height: 18px; }
 .btn-delete:hover { background: #dc2626; transform: scale(1.1); }
@@ -180,6 +183,19 @@
 .modal h3 { color: var(--text-primary); font-size: 1.25rem; margin: 0 0 1rem 0; }
 .modal p { color: var(--text-secondary); margin: 0 0 1.5rem 0; line-height: 1.5; }
 .modal-actions { display: flex; gap: 1rem; justify-content: flex-end; }
+
+/* Edit modal */
+.edit-modal { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 16px; max-width: 600px; width: 90%; animation: scaleIn 0.2s ease; overflow: hidden; }
+.edit-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 1.5rem 0; }
+.edit-modal-header h3 { color: var(--text-primary); font-size: 1.25rem; margin: 0; }
+.modal-close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s ease; }
+.modal-close-btn svg { width: 20px; height: 20px; }
+.modal-close-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.edit-modal-body { padding: 1.5rem; }
+.edit-preview { margin-bottom: 1.5rem; border-radius: 10px; overflow: hidden; }
+.edit-preview img { width: 100%; max-height: 250px; object-fit: cover; display: block; }
+.edit-fields { display: flex; flex-direction: column; gap: 1.25rem; }
+.edit-modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem 1.5rem; }
 
 @media (max-width: 768px) {
   .admin { padding: 1rem; }

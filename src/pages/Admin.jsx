@@ -99,6 +99,16 @@ function Admin() {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+  // Edit state
+  const [editingPhoto, setEditingPhoto] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editCustomCategory, setEditCustomCategory] = useState('');
+  const [editShowCustom, setEditShowCustom] = useState(false);
+  const [editLabels, setEditLabels] = useState([]);
+  const [editLabelInput, setEditLabelInput] = useState('');
+  const [saving, setSaving] = useState(false);
+
   const defaultCategories = ['Nature', 'People', 'Urban', 'Travel', 'Architecture', 'Other'];
 
   // Build categories from existing photos + defaults
@@ -301,6 +311,59 @@ function Admin() {
 
   const selectAllPhotos = () => {
     setSelectedPhotos(selectedPhotos.length === photos.length ? [] : photos.map(p => p.id));
+  };
+
+  const openEdit = (photo) => {
+    setEditingPhoto(photo);
+    setEditTitle(photo.title || '');
+    setEditCategory(photo.category || '');
+    setEditCustomCategory('');
+    setEditShowCustom(false);
+    setEditLabels(photo.labels || []);
+    setEditLabelInput('');
+  };
+
+  const closeEdit = () => {
+    setEditingPhoto(null);
+    setSaving(false);
+  };
+
+  const addEditLabel = () => {
+    const trimmed = editLabelInput.trim();
+    if (trimmed && !editLabels.includes(trimmed)) {
+      setEditLabels([...editLabels, trimmed]);
+      setEditLabelInput('');
+    }
+  };
+
+  const handleEditLabelKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addEditLabel();
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingPhoto) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .update({
+          title: editTitle,
+          category: editShowCustom ? editCustomCategory : editCategory,
+          labels: editLabels.length > 0 ? editLabels : null
+        })
+        .eq('id', editingPhoto.id);
+
+      if (error) throw error;
+      setMessage({ type: 'success', text: 'Photo updated successfully!' });
+      closeEdit();
+      refreshPhotos();
+    } catch (error) {
+      setMessage({ type: 'error', text: `Error: ${error.message}` });
+      setSaving(false);
+    }
   };
 
   const stats = {
@@ -617,6 +680,9 @@ function Admin() {
                       )}
                     </div>
                     <div className="photo-card-actions">
+                      <button className="btn-edit" onClick={() => openEdit(photo)}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                      </button>
                       <button className="btn-delete" onClick={() => setDeleteConfirm(photo)}>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
                       </button>
@@ -636,6 +702,97 @@ function Admin() {
               <div className="modal-actions">
                 <button className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
                 <button className="btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {editingPhoto && (
+          <div className="modal-overlay" onClick={closeEdit}>
+            <div className="edit-modal" onClick={e => e.stopPropagation()}>
+              <div className="edit-modal-header">
+                <h3>Edit Photo</h3>
+                <button className="modal-close-btn" onClick={closeEdit}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="edit-modal-body">
+                <div className="edit-preview">
+                  <img src={editingPhoto.url} alt={editingPhoto.title} />
+                </div>
+
+                <div className="edit-fields">
+                  <div className="form-group">
+                    <label>Title</label>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      placeholder="Photo title"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Category</label>
+                    {editShowCustom ? (
+                      <div className="category-input-container">
+                        <input
+                          type="text"
+                          value={editCustomCategory}
+                          onChange={(e) => setEditCustomCategory(e.target.value)}
+                          placeholder="Custom category"
+                          autoFocus
+                        />
+                        <button type="button" className="category-toggle-btn" onClick={() => {
+                          setEditShowCustom(false);
+                          setEditCustomCategory('');
+                        }}>Select</button>
+                      </div>
+                    ) : (
+                      <div className="category-input-container">
+                        <select value={editCategory} onChange={(e) => setEditCategory(e.target.value)}>
+                          <option value="">Select category</option>
+                          {allCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        </select>
+                        <button type="button" className="category-toggle-btn" onClick={() => setEditShowCustom(true)}>+ New</button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Labels</label>
+                    <div className="labels-input-container">
+                      <input
+                        type="text"
+                        value={editLabelInput}
+                        onChange={(e) => setEditLabelInput(e.target.value)}
+                        onKeyDown={handleEditLabelKeyDown}
+                        placeholder="Type a label and press Enter"
+                      />
+                      <button type="button" className="add-label-btn" onClick={addEditLabel}>Add</button>
+                    </div>
+                    {editLabels.length > 0 && (
+                      <div className="labels-list">
+                        {editLabels.map(label => (
+                          <span key={label} className="label-tag">
+                            {label}
+                            <button type="button" onClick={() => setEditLabels(editLabels.filter(l => l !== label))}>×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="edit-modal-footer">
+                <button className="btn-secondary" onClick={closeEdit}>Cancel</button>
+                <button className="btn-primary" onClick={handleSaveEdit} disabled={saving}>
+                  {saving ? <><span className="spinner"></span>Saving...</> : 'Save Changes'}
+                </button>
               </div>
             </div>
           </div>
