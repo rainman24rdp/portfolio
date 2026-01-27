@@ -27,6 +27,19 @@ function formatCoordinates(lat, lng) {
   return `${Math.abs(lat).toFixed(4)}° ${latDir}, ${Math.abs(lng).toFixed(4)}° ${lngDir}`;
 }
 
+// Get maps URL - Apple Maps for Apple devices, Google Maps otherwise
+function getMapsUrl(lat, lng) {
+  const isAppleDevice = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) &&
+                        'ontouchend' in document ||
+                        navigator.platform === 'MacIntel' ||
+                        /Mac/.test(navigator.platform);
+
+  if (isAppleDevice) {
+    return `https://maps.apple.com/?q=${lat},${lng}`;
+  }
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
 function PhotoModal({ photo, onClose }) {
   const hasMetadata = photo.camera || photo.lens || photo.aperture ||
                       photo.shutter_speed || photo.iso || photo.focal_length ||
@@ -123,7 +136,7 @@ function PhotoModal({ photo, onClose }) {
                       <circle cx="12" cy="10" r="3" />
                     </svg>
                     <a
-                      href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`}
+                      href={getMapsUrl(photo.latitude, photo.longitude)}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
