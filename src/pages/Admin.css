@@ -139,6 +139,40 @@
 .btn-delete { width: 36px; height: 36px; background: rgba(220, 38, 38, 0.9); border: none; border-radius: 8px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .btn-delete svg { width: 18px; height: 18px; }
 .btn-delete:hover { background: #dc2626; transform: scale(1.1); }
+.photo-meta-tag { display: inline-block; background: var(--bg-primary); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.7rem; margin-left: 0.5rem; border: 1px solid var(--border); }
+
+/* Multi-upload styles */
+.drop-zone.has-files { border-style: solid; border-color: var(--accent); padding: 1.5rem; min-height: auto; }
+.drop-zone-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; }
+.upload-previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; width: 100%; }
+.upload-preview-item { position: relative; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: all 0.2s ease; }
+.upload-preview-item.uploading { border-color: var(--accent); }
+.upload-preview-item.success { border-color: var(--accent); background: var(--accent-dim); }
+.upload-preview-item.error { border-color: #dc2626; background: rgba(220, 38, 38, 0.05); }
+.upload-preview-item img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+.preview-info { padding: 0.75rem; }
+.preview-info input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.85rem; }
+.preview-info input:focus { outline: none; border-color: var(--accent); }
+.preview-info input:disabled { opacity: 0.7; cursor: not-allowed; }
+.preview-metadata { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-muted); }
+.preview-metadata span { background: var(--bg-secondary); padding: 0.2rem 0.5rem; border-radius: 4px; }
+.status-icon { display: inline-flex; align-items: center; justify-content: center; margin-top: 0.5rem; font-size: 1rem; }
+.status-icon.success { color: var(--accent); }
+.status-icon.error { color: #dc2626; cursor: help; }
+.remove-file { position: absolute; top: 0.5rem; right: 0.5rem; width: 24px; height: 24px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease; }
+.upload-preview-item:hover .remove-file { opacity: 1; }
+.remove-file:hover { background: #dc2626; transform: scale(1.1); }
+.add-more-files { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; padding: 2rem; border: 2px dashed var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s ease; min-height: 150px; }
+.add-more-files:hover { border-color: var(--accent); background: var(--accent-dim); }
+.add-more-files svg { width: 32px; height: 32px; color: var(--text-muted); }
+.add-more-files span { font-size: 0.85rem; color: var(--text-muted); }
+.spinner.small { width: 14px; height: 14px; border-width: 2px; }
+
+/* Upload progress */
+.upload-progress { margin: 1.5rem 0; }
+.progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s ease; }
+.progress-text { display: block; text-align: center; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
 
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; animation: fadeIn 0.2s ease; }
 .modal { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; max-width: 400px; width: 90%; animation: scaleIn 0.2s ease; }

@@ -1,24 +1,101 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import exifr from 'exifr';
 import './Admin.css';
 
 const STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET || 'portfolio-photos';
+
+// Extract relevant EXIF metadata from an image file
+async function extractMetadata(file) {
+  try {
+    const exif = await exifr.parse(file, {
+      // Parse these tags
+      pick: [
+        'Make', 'Model', 'LensModel', 'LensMake',
+        'FNumber', 'ExposureTime', 'ISO', 'FocalLength',
+        'DateTimeOriginal', 'CreateDate',
+        'GPSLatitude', 'GPSLongitude', 'GPSLatitudeRef', 'GPSLongitudeRef',
+        'ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight'
+      ],
+      // Enable GPS parsing
+      gps: true
+    });
+
+    if (!exif) return null;
+
+    const metadata = {};
+
+    // Camera info
+    if (exif.Make || exif.Model) {
+      metadata.camera = [exif.Make, exif.Model].filter(Boolean).join(' ').trim();
+    }
+
+    // Lens info
+    if (exif.LensModel || exif.LensMake) {
+      metadata.lens = [exif.LensMake, exif.LensModel].filter(Boolean).join(' ').trim();
+    }
+
+    // Aperture (f-number)
+    if (exif.FNumber) {
+      metadata.aperture = `f/${exif.FNumber}`;
+    }
+
+    // Shutter speed
+    if (exif.ExposureTime) {
+      if (exif.ExposureTime < 1) {
+        metadata.shutter_speed = `1/${Math.round(1 / exif.ExposureTime)}s`;
+      } else {
+        metadata.shutter_speed = `${exif.ExposureTime}s`;
+      }
+    }
+
+    // ISO
+    if (exif.ISO) {
+      metadata.iso = exif.ISO;
+    }
+
+    // Focal length
+    if (exif.FocalLength) {
+      metadata.focal_length = `${Math.round(exif.FocalLength)}mm`;
+    }
+
+    // Capture date
+    if (exif.DateTimeOriginal || exif.CreateDate) {
+      const date = exif.DateTimeOriginal || exif.CreateDate;
+      metadata.captured_at = date instanceof Date ? date.toISOString() : new Date(date).toISOString();
+    }
+
+    // GPS coordinates
+    if (exif.latitude && exif.longitude) {
+      metadata.latitude = exif.latitude;
+      metadata.longitude = exif.longitude;
+    }
+
+    return Object.keys(metadata).length > 0 ? metadata : null;
+  } catch (error) {
+    console.error('Error extracting EXIF:', error);
+    return null;
+  }
+}
 
 function Admin() {
   const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [title, setTitle] = useState('');
+
+  // Multi-file upload state
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploadQueue, setUploadQueue] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
+
   const [category, setCategory] = useState('');
   const [customCategory, setCustomCategory] = useState('');
   const [showCategoryInput, setShowCategoryInput] = useState(false);
   const [labels, setLabels] = useState([]);
   const [labelInput, setLabelInput] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -48,27 +125,50 @@ function Admin() {
     }
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setTitle(file.name.split('.')[0]);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
-      reader.readAsDataURL(file);
-    }
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files);
+    await processFiles(files);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) {
-      setSelectedFile(file);
-      setTitle(file.name.split('.')[0]);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
-      reader.readAsDataURL(file);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    await processFiles(files);
+  };
+
+  const processFiles = async (files) => {
+    const newFiles = [];
+
+    for (const file of files) {
+      // Create preview
+      const preview = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+
+      // Extract metadata
+      const metadata = await extractMetadata(file);
+
+      newFiles.push({
+        id: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        file,
+        preview,
+        title: file.name.split('.')[0],
+        metadata,
+        status: 'pending' // pending, uploading, success, error
+      });
     }
+
+    setSelectedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const updateFileTitle = (id, title) => {
+    setSelectedFiles(prev => prev.map(f => f.id === id ? { ...f, title } : f));
+  };
+
+  const removeFile = (id) => {
+    setSelectedFiles(prev => prev.filter(f => f.id !== id));
   };
 
   const addLabel = () => {
@@ -92,53 +192,90 @@ function Admin() {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!selectedFile) {
-      setMessage({ type: 'error', text: 'Please select a file' });
+    if (selectedFiles.length === 0) {
+      setMessage({ type: 'error', text: 'Please select at least one file' });
       return;
     }
+
     setUploading(true);
     setMessage({ type: '', text: '' });
+    setUploadProgress({ current: 0, total: selectedFiles.length });
 
-    try {
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `photos/${fileName}`;
+    let successCount = 0;
+    let errorCount = 0;
 
-      const { error: uploadError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, selectedFile, { cacheControl: '3600', upsert: false });
-      if (uploadError) throw uploadError;
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const fileData = selectedFiles[i];
+      setUploadProgress({ current: i + 1, total: selectedFiles.length });
+      setSelectedFiles(prev => prev.map(f =>
+        f.id === fileData.id ? { ...f, status: 'uploading' } : f
+      ));
 
-      const { data: { publicUrl } } = supabase.storage
-        .from(STORAGE_BUCKET)
-        .getPublicUrl(filePath);
+      try {
+        const fileExt = fileData.file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `photos/${fileName}`;
 
-      const { error: dbError } = await supabase
-        .from('photos')
-        .insert([{
-          title,
+        const { error: uploadError } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .upload(filePath, fileData.file, { cacheControl: '3600', upsert: false });
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from(STORAGE_BUCKET)
+          .getPublicUrl(filePath);
+
+        const insertData = {
+          title: fileData.title,
           category,
           file_path: filePath,
           url: publicUrl,
-          original_name: selectedFile.name,
+          original_name: fileData.file.name,
           labels: labels.length > 0 ? labels : null
-        }]);
-      if (dbError) throw dbError;
+        };
 
-      setMessage({ type: 'success', text: 'Photo uploaded successfully!' });
-      setSelectedFile(null);
-      setPreview(null);
-      setTitle('');
-      setCategory('');
-      setCustomCategory('');
-      setShowCategoryInput(false);
-      setLabels([]);
-      fetchPhotos();
-    } catch (error) {
-      setMessage({ type: 'error', text: `Error: ${error.message}` });
-    } finally {
-      setUploading(false);
+        // Add metadata fields if available
+        if (fileData.metadata) {
+          Object.assign(insertData, fileData.metadata);
+        }
+
+        const { error: dbError } = await supabase
+          .from('photos')
+          .insert([insertData]);
+        if (dbError) throw dbError;
+
+        setSelectedFiles(prev => prev.map(f =>
+          f.id === fileData.id ? { ...f, status: 'success' } : f
+        ));
+        successCount++;
+      } catch (error) {
+        console.error('Upload error:', error);
+        setSelectedFiles(prev => prev.map(f =>
+          f.id === fileData.id ? { ...f, status: 'error', error: error.message } : f
+        ));
+        errorCount++;
+      }
     }
+
+    setUploading(false);
+
+    if (successCount > 0 && errorCount === 0) {
+      setMessage({ type: 'success', text: `${successCount} photo${successCount > 1 ? 's' : ''} uploaded successfully!` });
+      // Clear successful uploads after a delay
+      setTimeout(() => {
+        setSelectedFiles([]);
+        setCategory('');
+        setCustomCategory('');
+        setShowCategoryInput(false);
+        setLabels([]);
+      }, 1500);
+    } else if (successCount > 0 && errorCount > 0) {
+      setMessage({ type: 'error', text: `${successCount} uploaded, ${errorCount} failed. Check individual files for errors.` });
+    } else {
+      setMessage({ type: 'error', text: 'All uploads failed. Please try again.' });
+    }
+
+    fetchPhotos();
   };
 
   const handleDelete = async (photo) => {
@@ -285,33 +422,73 @@ function Admin() {
         {activeTab === 'upload' && (
           <div className="upload-content">
             <form onSubmit={handleUpload} className="upload-form">
-              <div className={`drop-zone ${preview ? 'has-preview' : ''}`} onDrop={handleDrop} onDragOver={(e) => e.preventDefault()}>
-                {preview ? (
-                  <div className="preview-container">
-                    <img src={preview} alt="Preview" className="preview-image" />
-                    <button type="button" className="clear-preview" onClick={() => { setSelectedFile(null); setPreview(null); setTitle(''); setLabels([]); }}>×</button>
+              <div
+                className={`drop-zone ${selectedFiles.length > 0 ? 'has-files' : ''}`}
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                {selectedFiles.length > 0 ? (
+                  <div className="upload-previews">
+                    {selectedFiles.map(fileData => (
+                      <div key={fileData.id} className={`upload-preview-item ${fileData.status}`}>
+                        <img src={fileData.preview} alt={fileData.title} />
+                        <div className="preview-info">
+                          <input
+                            type="text"
+                            value={fileData.title}
+                            onChange={(e) => updateFileTitle(fileData.id, e.target.value)}
+                            placeholder="Photo title"
+                            disabled={uploading}
+                          />
+                          {fileData.metadata && (
+                            <div className="preview-metadata">
+                              {fileData.metadata.camera && <span title="Camera">{fileData.metadata.camera}</span>}
+                              {fileData.metadata.captured_at && (
+                                <span title="Captured">
+                                  {new Date(fileData.metadata.captured_at).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {fileData.status === 'success' && <span className="status-icon success">✓</span>}
+                          {fileData.status === 'error' && <span className="status-icon error" title={fileData.error}>✕</span>}
+                          {fileData.status === 'uploading' && <span className="status-icon uploading"><span className="spinner small"></span></span>}
+                        </div>
+                        {!uploading && fileData.status !== 'success' && (
+                          <button type="button" className="remove-file" onClick={() => removeFile(fileData.id)}>×</button>
+                        )}
+                      </div>
+                    ))}
+                    {!uploading && (
+                      <label className="add-more-files">
+                        <input type="file" accept="image/*" multiple onChange={handleFileSelect} className="file-input" />
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <span>Add More</span>
+                      </label>
+                    )}
                   </div>
                 ) : (
                   <div className="drop-zone-content">
                     <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    <p>Drag and drop an image here</p>
+                    <p>Drag and drop images here</p>
                     <p className="drop-zone-or">or</p>
                     <label className="file-input-label">
-                      <input type="file" accept="image/*" onChange={handleFileSelect} className="file-input" />
-                      Choose File
+                      <input type="file" accept="image/*" multiple onChange={handleFileSelect} className="file-input" />
+                      Choose Files
                     </label>
+                    <p className="drop-zone-hint">You can select multiple images at once</p>
                   </div>
                 )}
               </div>
-              {selectedFile && (
+
+              {selectedFiles.length > 0 && (
                 <div className="form-fields">
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="title">Photo Title</label>
-                      <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Enter photo title" required />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="category">Category</label>
+                      <label htmlFor="category">Category <span className="optional">(applies to all)</span></label>
                       {showCategoryInput ? (
                         <div className="category-input-container">
                           <input
@@ -345,35 +522,66 @@ function Admin() {
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="form-group">
-                    <label htmlFor="labels">Labels <span className="optional">(optional)</span></label>
-                    <div className="labels-input-container">
-                      <input
-                        type="text"
-                        id="labels"
-                        value={labelInput}
-                        onChange={(e) => setLabelInput(e.target.value)}
-                        onKeyDown={handleLabelKeyDown}
-                        placeholder="Type a label and press Enter"
-                      />
-                      <button type="button" className="add-label-btn" onClick={addLabel}>Add</button>
-                    </div>
-                    {labels.length > 0 && (
-                      <div className="labels-list">
-                        {labels.map(label => (
-                          <span key={label} className="label-tag">
-                            {label}
-                            <button type="button" onClick={() => removeLabel(label)}>×</button>
-                          </span>
-                        ))}
+                    <div className="form-group">
+                      <label htmlFor="labels">Labels <span className="optional">(applies to all)</span></label>
+                      <div className="labels-input-container">
+                        <input
+                          type="text"
+                          id="labels"
+                          value={labelInput}
+                          onChange={(e) => setLabelInput(e.target.value)}
+                          onKeyDown={handleLabelKeyDown}
+                          placeholder="Type a label and press Enter"
+                        />
+                        <button type="button" className="add-label-btn" onClick={addLabel}>Add</button>
                       </div>
-                    )}
+                      {labels.length > 0 && (
+                        <div className="labels-list">
+                          {labels.map(label => (
+                            <span key={label} className="label-tag">
+                              {label}
+                              <button type="button" onClick={() => removeLabel(label)}>×</button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {uploading && (
+                    <div className="upload-progress">
+                      <div className="progress-bar">
+                        <div
+                          className="progress-fill"
+                          style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
+                        />
+                      </div>
+                      <span className="progress-text">
+                        Uploading {uploadProgress.current} of {uploadProgress.total}...
+                      </span>
+                    </div>
+                  )}
+
                   <div className="form-actions">
                     <button type="submit" className="btn-primary" disabled={uploading}>
-                      {uploading ? <><span className="spinner"></span>Uploading...</> : <>Upload Photo</>}
+                      {uploading ? (
+                        <><span className="spinner"></span>Uploading...</>
+                      ) : (
+                        <>Upload {selectedFiles.length} Photo{selectedFiles.length > 1 ? 's' : ''}</>
+                      )}
                     </button>
+                    {!uploading && (
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setSelectedFiles([]);
+                          setLabels([]);
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -415,6 +623,7 @@ function Admin() {
                     <div className="photo-card-info">
                       <h4>{photo.title}</h4>
                       <span className="photo-category-tag">{photo.category}</span>
+                      {photo.camera && <span className="photo-meta-tag">{photo.camera}</span>}
                       {photo.labels && photo.labels.length > 0 && (
                         <div className="photo-labels">
                           {photo.labels.map(label => (
