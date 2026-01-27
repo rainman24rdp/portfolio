@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { PhotosProvider } from './contexts/PhotosContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -13,7 +14,8 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Layout>
+        <PhotosProvider>
+          <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
@@ -28,7 +30,8 @@ function App() {
               }
             />
           </Routes>
-        </Layout>
+          </Layout>
+        </PhotosProvider>
       </AuthProvider>
     </Router>
   );
