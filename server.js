@@ -19,6 +19,15 @@ if (!ADMIN_PASSWORD) {
   process.exit(1);
 }
 
+// Spotify credentials (optional)
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
+const SPOTIFY_REFRESH_TOKEN = process.env.SPOTIFY_REFRESH_TOKEN;
+
+// Cache for Spotify access token
+let spotifyAccessToken = null;
+let spotifyTokenExpiry = 0;
+
 // Store active sessions (in production, use Redis or a database)
 const sessions = new Map();
 
@@ -205,6 +214,80 @@ app.delete('/api/photos/:id', requireAuth, (req, res) => {
     res.json({ message: 'Photo deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Spotify Now Playing API
+async function getSpotifyAccessToken() {
+  if (spotifyAccessToken && Date.now() < spotifyTokenExpiry) {
+    return spotifyAccessToken;
+  }
+
+  const basic = Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString('base64');
+
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${basic}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: SPOTIFY_REFRESH_TOKEN,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (data.access_token) {
+    spotifyAccessToken = data.access_token;
+    // Token expires in 1 hour, refresh 5 minutes early
+    spotifyTokenExpiry = Date.now() + (data.expires_in - 300) * 1000;
+  }
+
+  return spotifyAccessToken;
+}
+
+app.get('/api/now-playing', async (req, res) => {
+  // Check if Spotify is configured
+  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET || !SPOTIFY_REFRESH_TOKEN) {
+    return res.json({ isPlaying: false });
+  }
+
+  try {
+    const accessToken = await getSpotifyAccessToken();
+
+    if (!accessToken) {
+      return res.json({ isPlaying: false });
+    }
+
+    const response = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.status === 204 || response.status > 400) {
+      return res.json({ isPlaying: false });
+    }
+
+    const song = await response.json();
+
+    if (!song || !song.item) {
+      return res.json({ isPlaying: false });
+    }
+
+    res.json({
+      isPlaying: song.is_playing,
+      title: song.item.name,
+      artist: song.item.artists.map(artist => artist.name).join(', '),
+      album: song.item.album.name,
+      albumImageUrl: song.item.album.images[0]?.url,
+      songUrl: song.item.external_urls.spotify,
+    });
+  } catch (error) {
+    console.error('Spotify API error:', error);
+    res.json({ isPlaying: false });
   }
 });
 
