@@ -17,7 +17,37 @@
 .photography-intro {
   font-size: 1.1rem;
   color: var(--text-secondary);
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
+}
+
+/* Category filter */
+.filter-bar {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: none;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.filter-btn:hover {
+  color: var(--text-primary);
+}
+
+.filter-btn.active {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  font-weight: 500;
 }
 
 /* Masonry layout using CSS columns */
@@ -163,6 +193,26 @@
 @media (max-width: 480px) {
   .photography {
     padding: 2rem 1rem;
+  }
+
+  .filter-bar {
+    gap: 0.15rem;
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-btn {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.7rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .photo-gallery {
