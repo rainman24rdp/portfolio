@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { usePhotos } from '../contexts/PhotosContext';
 import './Photography.css';
 
 function LazyImage({ src, alt, className }) {
@@ -154,30 +154,18 @@ function PhotoModal({ photo, onClose }) {
 }
 
 function Photography() {
-  const [photos, setPhotos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { photos, loading, error, fetchPhotos } = usePhotos();
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('All');
 
   useEffect(() => {
     fetchPhotos();
-  }, []);
+  }, [fetchPhotos]);
 
-  const fetchPhotos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('photos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPhotos(data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const categories = ['All', ...new Set(photos.map(p => p.category).filter(Boolean))];
+  const filteredPhotos = activeFilter === 'All'
+    ? photos
+    : photos.filter(p => p.category === activeFilter);
 
   if (loading) {
     return (
@@ -210,11 +198,26 @@ function Photography() {
         <p className="photography-intro">
           Capturing moments and stories through the lens.
         </p>
+
+        {photos.length > 0 && categories.length > 2 && (
+          <div className="filter-bar">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                className={`filter-btn ${activeFilter === cat ? 'active' : ''}`}
+                onClick={() => setActiveFilter(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+
         {photos.length === 0 ? (
           <p className="no-photos">No photos uploaded yet. Visit /admin to upload photos!</p>
         ) : (
-          <div className="photo-gallery">
-            {photos.map((photo) => (
+          <div className="photo-gallery" key={activeFilter}>
+            {filteredPhotos.map((photo) => (
               <div
                 key={photo.id}
                 className="photo-item"
